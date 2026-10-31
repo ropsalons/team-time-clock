@@ -1,0 +1,32 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[dev]
+  command = "npm run dev"
+  targetPort = 5173
+
+# SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(self), camera=(), microphone=()"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.supabase.co https://hub.example.com https://hub.example.com/; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'"
+
+# Daily reconcile (runs only once the app's own Gusto OAuth creds are configured)
+[functions."scheduled-gusto-sync"]
+  schedule = "0 8 * * *"

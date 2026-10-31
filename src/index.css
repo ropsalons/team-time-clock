@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: #f7f4ef;
+  -webkit-tap-highlight-color: transparent;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Respect iOS safe areas for the PWA */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-top { padding-top: env(safe-area-inset-top); }
+
+/* Print: show only the report, drop the app chrome */
+@media print {
+  body { background: #fff; }
+  .no-print { display: none !important; }
+  .printable { box-shadow: none; }
+  main { padding: 0 !important; }
+}
