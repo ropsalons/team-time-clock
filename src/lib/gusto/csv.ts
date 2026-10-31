@@ -3,7 +3,7 @@
 // more than one department/location we emit ONE ROW PER JOB, and the "Job Title"
 // column is built to match the Gusto job (e.g. "Stylist Uptown"). Hours are
 // decimal; overtime is attributed to the job where the >40h hours occurred.
-// The file also carries the DOLLAR extras the payroll dashboard calculates
+// The file can also carry optional DOLLAR extras
 // (Paycheck Tips / Bonus / Commission — see extras.ts), so one import covers
 // hours and extras; rates and the final pay run still live in Gusto.
 
@@ -32,7 +32,7 @@ export interface ExportRow {
   w2_regular_seconds?: number;
   w2_overtime_seconds?: number;
   exceptions?: string;
-  // Dollar extras calculated by the Team Payroll Performance dashboard, keyed by
+  // Optional dollar extras (see extras.ts), keyed by
   // the EXACT Gusto earning-type name (tips, bonuses, commission, PTO dollars,
   // missed-punch pay, …) — attached to each person's PRIMARY job row only, so
   // Gusto never gets the same dollars twice. One CSV column per earning; blank

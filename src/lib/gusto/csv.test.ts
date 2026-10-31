@@ -56,18 +56,18 @@ describe('buildPayrollCsv (per-job rows)', () => {
   });
   it('writes one dollar column per Gusto earning, cents when present, blank otherwise', () => {
     const csv = buildPayrollCsv([
-      row({ extras: { 'Paycheck Tips': 135.75, 'Team Stylist Development': 850, 'Paid Time': 2295 } }),
+      row({ extras: { 'Paycheck Tips': 135.75, Bonus: 850, 'Paid Time': 2295 } }),
       row({ employee_name: 'Jordan Demo' }),
     ]);
     const [header, withExtras, without] = csv.split('\r\n');
     // Fixed header set: all earning columns present even when unused, so Gusto's
     // remembered Smart Import mapping never shifts between runs.
-    expect(header).toContain('Paycheck Tips,Commission,Bonus,Paid Time,Missed Punch,Guest Experience Bonus,Team Stylist Development');
+    expect(header).toContain('Paycheck Tips,Commission,Bonus,Paid Time,Missed Punch,Extra Time,Time Off');
     expect(header).toContain('Cash Tips,Exceptions');
     const cols = withExtras.split(',');
     const headerCols = header.split(',');
     expect(cols[headerCols.indexOf('Paycheck Tips')]).toBe('135.75');
-    expect(cols[headerCols.indexOf('Team Stylist Development')]).toBe('850.00');
+    expect(cols[headerCols.indexOf('Bonus')]).toBe('850.00');
     expect(cols[headerCols.indexOf('Paid Time')]).toBe('2295.00');
     expect(cols[headerCols.indexOf('Commission')]).toBe('');
     expect(without.split(',')[headerCols.indexOf('Paycheck Tips')]).toBe('');

@@ -25,7 +25,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(self), camera=(), microphone=()"
-    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.supabase.co https://hub.example.com https://hub.example.com/; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.supabase.co; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'"
 
 # Daily reconcile (runs only once the app's own Gusto OAuth creds are configured)
 [functions."scheduled-gusto-sync"]

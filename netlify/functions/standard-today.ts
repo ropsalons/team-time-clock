@@ -1,12 +1,10 @@
 import { json, requireMethod } from './_shared/http';
 import { adminClient } from './_shared/supabase';
 
-// The Standard — Daily, served SAME-ORIGIN from Team Time Clock's own backend so the
-// clock screen never depends on reaching the command-center host directly (an
-// ISP black-holed *.netlify.app on Sep 18, 2026). It reads the very same
-// app_config bank the command-center cron writes — the bank lives in the same
-// Supabase project Team Time Clock already uses — so this is always in sync with what
-// posted to Team Chat #announcements. Content is the public announcement line,
+// Optional "daily standard" line for the clock screen, served same-origin from
+// this app's own backend. It reads app_config keys DAILY_STANDARD_TODAY (a line
+// for today) and DAILY_STANDARD_BANK (a list to rotate through), which you can
+// fill yourself or from another tool. Content is the public announcement line,
 // so no auth is required. On any problem it returns line:null and the clock
 // screen simply shows the inspirational quote — it must never break the clock.
 //   GET /api/standard-today

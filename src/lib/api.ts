@@ -293,8 +293,8 @@ export interface PayrollPreview {
   ok: true;
   preview: {
     employees: number; jobLines: number; regularHours: number; overtimeHours: number; estCost?: number; exceptions: number; unmatchedJobs?: number; excludedNonGusto?: number;
-    // Dollar extras from the Team Payroll Performance dashboard riding the CSV
-    // (null/absent = dashboard data unavailable, file is hours-only). Keys of
+    // Optional dollar extras riding the CSV
+    // (null/absent = no extras, file is hours-only). Keys of
     // totalsByEarning are exact Gusto earning-type names.
     extras?: { total: number; totalsByEarning: Record<string, number>; people: number; unmatched: string[]; manualOnly: Array<{ person: string; category: string; amount: number }>; excludedPaid?: Array<{ person: string; category: string; amount: number; reason: string }> } | null;
   };

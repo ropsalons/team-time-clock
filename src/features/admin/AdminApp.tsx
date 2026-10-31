@@ -153,8 +153,8 @@ function LaborDetailPanel({ open, onClose }: { open: boolean; onClose: () => voi
   const [date, setDate] = useState(() => etDateStr(0));
   const [data, setData] = useState<{ totalHours: number; rows: LaborRow[] } | null>(null);
   const [busy, setBusy] = useState(false);
-  // Guest counts come from Boulevard, separately and best-effort: if Boulevard
-  // is unset/down the labor panel still works and guests just don't show.
+  // Guest counts are an optional add-on (off by default): when not configured
+  // the labor panel still works and guests just don't show.
   const [guests, setGuests] = useState<{ byLocation: Record<string, number>; total: number; configured: boolean } | null>(null);
   useEffect(() => {
     if (!open) return;
@@ -787,9 +787,9 @@ function Payroll() {
           <p className="text-xs text-neutral-400 -mt-1 mb-2">A person who works more than one job shows one <b>line per job</b> (that's how Gusto imports them) — so job lines can exceed the employee count.{data.preview.excludedNonGusto ? ` ${data.preview.excludedNonGusto} non-Gusto person(s) excluded from this export.` : ''}{data.preview.unmatchedJobs ? <span className="text-amber-600"> {data.preview.unmatchedJobs} line(s) had no matching Gusto job (flagged NO_GUSTO_JOB) — add that job in Gusto so it imports correctly.</span> : null}</p>
           {data.preview.extras ? (
             <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 text-sm">
-              <div className="font-semibold text-emerald-800">💵 Dashboard extras ride this file — no manual entry needed</div>
+              <div className="font-semibold text-emerald-800">💵 Extras ride this file — no manual entry needed</div>
               <p className="text-xs text-emerald-700 mt-0.5">
-                {data.preview.extras.people} people · ${data.preview.extras.total.toFixed(2)} total: {Object.entries(data.preview.extras.totalsByEarning).map(([n, v]) => `${n} $${v.toFixed(2)}`).join(' · ')} (from the Team Payroll Performance report — Boulevard card tips + Add’l pay, on the Gusto line item of the same name).
+                {data.preview.extras.people} people · ${data.preview.extras.total.toFixed(2)} total: {Object.entries(data.preview.extras.totalsByEarning).map(([n, v]) => `${n} $${v.toFixed(2)}`).join(' · ')} (from your optional extras table, on the Gusto line item of the same name).
               </p>
               {data.preview.extras.unmatched.length > 0 && (
                 <p className="text-xs text-amber-700 mt-1">⚠️ Couldn’t match to a Gusto employee — enter these by hand: {data.preview.extras.unmatched.join(', ')}.</p>
@@ -802,7 +802,7 @@ function Payroll() {
               )}
             </div>
           ) : (
-            <p className="text-xs text-amber-600 -mt-1 mb-2">Dashboard extras (tips / bonus / commission) aren’t available for this range — the file is hours-only. On the Team Payroll Performance report, pick this pay period and press ⟳ Sync, then re-preview here.</p>
+            <p className="text-xs text-amber-600 -mt-1 mb-2">No extras (tips / bonus / commission) for this range — the file is hours-only. That’s normal if you only send hours.</p>
           )}
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[980px]">
@@ -835,7 +835,7 @@ function Payroll() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-neutral-400 mt-3">Preview classifications for review. Gusto remains the payroll authority (rates and the final pay run live in Gusto, not here). OT = weekly hours over 40 (federal rule). <b>Job</b> is the exact Gusto job name we send (a <span className="text-amber-500">*</span> means no exact Gusto job matched — it was built from role+salon). The Gusto CSV carries hours <b>plus</b> the dashboard’s dollar extras (Paycheck Tips / Bonus / Commission); Gusto computes base pay from its own rates.</p>
+          <p className="text-xs text-neutral-400 mt-3">Preview classifications for review. Gusto remains the payroll authority (rates and the final pay run live in Gusto, not here). OT = weekly hours over 40 (federal rule). <b>Job</b> is the exact Gusto job name we send (a <span className="text-amber-500">*</span> means no exact Gusto job matched — it was built from role+salon). The Gusto CSV carries hours <b>plus</b> any optional dollar extras (Paycheck Tips / Bonus / Commission); Gusto computes base pay from its own rates.</p>
         </>
       )}
     </Card>
@@ -905,11 +905,11 @@ function PayrollChecklist() {
   const STEPS: Array<{ t: string; d: string }> = [
     { t: 'Review the punches', d: 'Payroll → pick the pay period → “All punches (by day)” and check everyone’s in/out. Team Time Clock is the only source of hours.' },
     { t: 'Do the corrections', d: 'Corrections tab → “Approve & fix” each request (it makes the change and approves it).' },
-    { t: 'Sync the payroll dashboard', d: 'Open the Team Payroll Performance report, pick this pay period, and press “⟳ Sync this pay period”. That computes the tips, bonuses, commissions and PTO dollars that ride the Gusto file. Do this AFTER corrections and right before the next step — if hours change later, sync again.' },
-    { t: 'Preview the totals', d: 'Back here on “Totals (for Gusto)”, press Preview hours. The GREEN BOX shows every dollar riding the file, line item by line item — if it shows an amber warning instead, the dashboard wasn’t synced: go back one step.' },
-    { t: 'Download the Gusto file', d: 'Download Gusto CSV. One file: hours + all the dollars from the green box.' },
-    { t: 'Import to Gusto', d: 'Gusto → Run Payroll → Smart Import → upload the file. In mapping: Location = (Unmatched) — NOT Vacation hours; Regular → Regular hours, Overtime → Overtime hours, and every dollar column maps to the Gusto earning with the SAME NAME (Paycheck Tips → Paycheck tips, Paid Time → Paid time, Missed Punch → Missed punch, Team Stylist Development → Team stylist development, …). Gusto remembers the mapping after the first time.' },
-    { t: 'Add what’s still manual', d: 'Tips, bonuses, commission, PTO dollars and missed-punch pay now ride the import file (the green box lists the totals per line item). Still entered by hand in Gusto: “Hours to add” from the dashboard (extra HOURS, e.g. Boulevard hours for non-punchers) and anything the green box flags as unmatched or manual. Recurring pay (Gray’s $250 Bonus, Gratitude Bonus, Leadership Bonus) lives in Gusto itself — the file correctly leaves it alone.' },
+    { t: 'Add optional extras', d: 'If you track tips, bonuses or commission in a separate extras table (optional), update it for this pay period now, after corrections. Skip this step if you only send hours.' },
+    { t: 'Preview the totals', d: 'Back here on “Totals (for Gusto)”, press Preview hours. The GREEN BOX shows every dollar riding the file, line item by line item — if it shows an amber note instead, the file is hours-only.' },
+    { t: 'Download the Gusto file', d: 'Download Gusto CSV. One file: hours plus any extras from the green box.' },
+    { t: 'Import to Gusto', d: 'Gusto → Run Payroll → Smart Import → upload the file. In mapping: Location = (Unmatched) — NOT Vacation hours; Regular → Regular hours, Overtime → Overtime hours, and every dollar column maps to the Gusto earning with the SAME NAME (Paycheck Tips → Paycheck tips, Paid Time → Paid time, Missed Punch → Missed punch, …). Gusto remembers the mapping after the first time.' },
+    { t: 'Add what’s still manual', d: 'Tips, bonuses, commission, PTO dollars and missed-punch pay now ride the import file (the green box lists the totals per line item). Still entered by hand in Gusto: extra hours for people who don’t clock in, anything the green box flags as unmatched or manual, and one-off items (for example, add a one-off bonus for a sample employee). Recurring pay set up in Gusto itself stays there — the file leaves it alone.' },
     { t: 'Submit payroll in Gusto', d: 'Review Gusto’s totals and submit the run.' },
   ];
   const [done, setDone] = useState<Set<number>>(() => { try { return new Set<number>(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch { return new Set(); } });

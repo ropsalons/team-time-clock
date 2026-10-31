@@ -28,7 +28,7 @@ One header row, then one row per person per job. Columns, in order:
 | Double OT Hours | Always 0 (not used) |
 | Week 1 Regular Hours / Week 1 Overtime Hours | First 7 days of the period |
 | Week 2 Regular Hours / Week 2 Overtime Hours | Second 7 days |
-| Extra pay columns | One column per Gusto earning type: Paycheck Tips, Commission, Bonus, Paid Time, Missed Punch, Cash Tips, Time Off, Severance Pay, and several team bonus types (see `src/lib/gusto/extras.ts`). Filled only when amounts are supplied from an outside report; otherwise blank. Only on the person's main job row, so nothing is paid twice. |
+| Extra pay columns | One column per Gusto earning type: Paycheck Tips, Commission, Bonus, Paid Time, Missed Punch, Extra Time, Time Off, Severance Pay, Cash Tips (edit the list in `src/lib/gusto/extras.ts` to match your payroll account). Filled only when you supply amounts in the optional extras tables; otherwise blank. Only on the person's main job row, so nothing is paid twice. |
 | Exceptions | Blank, `OPEN_SHIFT` (still clocked in), or `NO_GUSTO_JOB` (no matching Gusto job) |
 
 **How Job Title is chosen** (first that applies):

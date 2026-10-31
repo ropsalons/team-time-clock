@@ -183,8 +183,8 @@ export default async (req: Request): Promise<Response> => {
       const w = weeklyByKey.get(`${r.gusto_employee_uuid}|${r.job_title}`);
       if (w) { r.w1_regular_seconds = w.w1r; r.w1_overtime_seconds = w.w1o; r.w2_regular_seconds = w.w2r; r.w2_overtime_seconds = w.w2o; }
     }
-    // ---- dollar extras from the Team Payroll Performance dashboard ----
-    // Boulevard credit-card tips + bonus/commission adjustments live in the same
+    // ---- optional dollar extras ----
+    // Card tips + bonus/commission adjustments can live in optional tables in the same
     // Supabase project (public.pp_runs / public.pp_run_adjustments). Attach each
     // person's extras to their PRIMARY job row (the one with the most hours) so
     // one Smart Import file carries hours AND dollars. Someone with extras but

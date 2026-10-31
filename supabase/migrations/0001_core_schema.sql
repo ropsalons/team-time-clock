@@ -7,7 +7,7 @@
 -- Apply with: supabase db push  (or the Supabase MCP apply_migration)
 --
 -- Isolation: On the Clock lives in its own `otc` schema so it can safely share
--- the brand-command-center Postgres project without colliding with that app's
+-- an existing Postgres project without colliding with that app's
 -- public tables. gen_random_uuid() is core in Postgres 13+ (pg_catalog), so no
 -- extension is required.
 

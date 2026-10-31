@@ -5,7 +5,6 @@ import { runGustoSync } from './_shared/gusto';
 import { deriveSegments } from '../../src/lib/domain/segments';
 import type { StoredEvent } from '../../src/lib/domain/punch';
 import { resolveCorrection, etDateStr } from '../../src/lib/domain/correction';
-import { blvd, blvdConfigured, BLVD_LOCATIONS } from './_shared/blvd';
 
 // Admin/manager action dispatcher. Every action re-checks authorization
 // server-side. Admins (payroll_admin/system_admin) have full reach; location
@@ -230,45 +229,10 @@ export default async (req: Request): Promise<Response> => {
         return json({ ok: true, date, totalHours, rows });
       }
 
-      // ---- guest counts per salon for a day (Boulevard) — best-effort ----
+      // ---- guest counts per location (optional add-on, not included) ----
       case 'guest_counts': {
         const date = String(body.date ?? '');
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return error(400, 'bad_date', 'date must be YYYY-MM-DD.');
-        if (!blvdConfigured()) return json({ ok: true, date, configured: false, byLocation: {}, total: 0 });
-        // Eastern day window (salons are ET). DST-safe enough for a day boundary.
-        const fromIso = new Date(`${date}T00:00:00-05:00`).toISOString();
-        const toIso = new Date(`${date}T00:00:00-05:00`);
-        toIso.setUTCDate(toIso.getUTCDate() + 1);
-        const filter = `startAt >= '${fromIso}' AND startAt < '${toIso.toISOString()}'`;
-        const byLocation: Record<string, number> = {};
-        let ok = true;
-        // Sequential (Boulevard rate-limits hard); count UNIQUE guests per salon.
-        for (const [salon, locId] of Object.entries(BLVD_LOCATIONS)) {
-          try {
-            const clients = new Set<string>();
-            let anon = 0; let cursor: string | null = null; let pages = 0;
-            do {
-              const after: string = cursor ? `, after: "${cursor}"` : '';
-              const data: any = await blvd(
-                `query { appointments(first: 200, locationId: "${locId}"${after}, query: ${JSON.stringify(filter)}) {
-                  pageInfo { hasNextPage endCursor }
-                  edges { node { state client { id } } } } }`,
-                `guests:${salon}:${date}`,
-              );
-              for (const e of data?.appointments?.edges ?? []) {
-                const st = e?.node?.state || '';
-                if (/cancel|no_show|noshow/i.test(st)) continue;
-                const cid = e?.node?.client?.id;
-                if (cid) clients.add(cid); else anon += 1;
-              }
-              const pi = data?.appointments?.pageInfo;
-              cursor = pi?.hasNextPage ? pi.endCursor : null;
-            } while (cursor && ++pages < 10);
-            byLocation[salon] = clients.size + anon;
-          } catch { ok = false; byLocation[salon] = -1; } // -1 => unavailable for this salon
-        }
-        const total = Object.values(byLocation).reduce((s, n) => s + (n > 0 ? n : 0), 0);
-        return json({ ok: true, date, configured: true, partial: !ok, byLocation, total });
+        return json({ ok: true, date, configured: false, byLocation: {}, total: 0 });
       }
 
       // ---- timecard approve / lock / reopen ----

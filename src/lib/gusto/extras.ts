@@ -1,38 +1,31 @@
-// Dollar "extras" for the Gusto CSV, calculated by the Team Payroll Performance
-// dashboard (same Supabase project): Boulevard credit-card tips, bonuses,
-// commissions, PTO dollars and one-off adjustments entered on the dashboard's
-// Payroll runs tab. Merging them into the export means ONE Smart Import file
+// Optional dollar "extras" for the Gusto CSV (card tips, bonuses, commissions,
+// PTO dollars and one-off adjustments), read from two optional tables in the
+// same Supabase project. If they don't exist the export is simply hours-only. Merging them into the export means ONE Smart Import file
 // carries hours AND dollars — no re-typing extras into Gusto by hand.
 //
 // Sources (read by netlify/functions/payroll-export.ts, merged here):
-//  - public.pp_runs (id = period END date): data.rows[] with blvdTips and
-//    rule-computed addlItems (auto: true) from the dashboard's sync.
+//  - public.pp_runs (id = period END date): data.rows[] with cardTips and
+//    rule-computed addlItems (auto: true).
 //  - public.pp_run_adjustments (period_start = period START date): manual rows.
 //    A manual row REPLACES an auto item of the same category for that person —
-//    identical to how the dashboard itself resolves them.
+
 //
-// Categories ARE the Gusto earning-type names (the owner, 2026-10-09): the dashboard
-// dropdown mirrors Gusto's list exactly, and each category becomes its own CSV
+// Categories ARE the Gusto earning-type names: and each category becomes its own CSV
 // column so the dollars land on that precise paycheck line item. Legacy category
 // names from older rows are translated via CANON_LEGACY. A category with no Gusto
 // home ('other', typos) is reported as skipped so money is never silently dropped.
-// KEEP IN LOCKSTEP with the payroll dashboard app:
-//   netlify/functions/_categories.cjs and src/components/PayrollRuns.jsx.
+// Edit GUSTO_EARNING_COLUMNS to match the earning types in YOUR payroll account.
 
 /** Every dollar column the CSV can carry — exact Gusto earning-type names. */
 export const GUSTO_EARNING_COLUMNS = [
   'Paycheck Tips', 'Commission', 'Bonus', 'Paid Time', 'Missed Punch',
-  'Guest Experience Bonus', 'Team Stylist Development', 'Team Demand Builder Bonus',
-  'Extra Time', 'Above & Beyond!', 'Blessings', 'Gratitude', 'Leadership',
-  'Concierge performance bonus', 'Salary Overage', 'Time Off', 'outside Salon schedule',
-  'Severance Pay', 'Cash Tips',
+  'Extra Time', 'Time Off', 'Severance Pay', 'Cash Tips',
 ] as const;
 export type GustoEarning = (typeof GUSTO_EARNING_COLUMNS)[number];
 
 const CANON_LEGACY: Record<string, GustoEarning> = {
-  'six-step bonus': 'Guest Experience Bonus',
-  'education bonus': 'Team Stylist Development',
-  'training & development': 'Team Stylist Development',
+  'performance bonus': 'Bonus',
+  'training bonus': 'Bonus',
   'time adjustment': 'Missed Punch',
   'paid time off': 'Paid Time',
   'tip catch-up': 'Paycheck Tips',
@@ -56,13 +49,12 @@ export interface ExtrasResult {
   skipped: Array<{ person: string; category: string; amount: number }>;
   /** rows marked "already paid" (e.g. in an off-cycle payroll) — kept OFF the CSV
    *  so they can never double-pay, and surfaced so the reviewer sees why.
-   *  Born 10/19/26: an off-cycle run paid the tip catch-ups early and the file
-   *  re-included them; the owner had to delete the lines by hand. Never again. */
+   *  (e.g. an off-cycle run already paid them). */
   excludedPaid: Array<{ person: string; category: string; amount: number; reason: string }>;
 }
 
-// Same normalization + display-name aliases the dashboard uses, so "Casey
-// D" (dashboard) and "Casey Demo" (Gusto legal name, which Team Time Clock
+// Normalization + display-name aliases, so "Casey
+// D" (nickname) and "Casey Demo" (Gusto legal name, which Team Time Clock
 // stores) land on one canonical key.
 const ALIASES: Record<string, string> = {
   // Example: nickname used in one system -> legal name used in payroll.
@@ -73,7 +65,7 @@ export const extrasKey = (name: string): string => { const n = norm(name); retur
 
 export interface RunRowLike {
   first?: string; last?: string;
-  blvdTips?: number | null;
+  cardTips?: number | null;
   addlItems?: Array<{ category?: string; amount?: number; auto?: boolean }> | null;
 }
 export interface AdjustmentLike {
@@ -85,7 +77,7 @@ export function mergeExtras(runRows: RunRowLike[], adjustments: AdjustmentLike[]
   const skipped: ExtrasResult['skipped'] = [];
   const excludedPaid: ExtrasResult['excludedPaid'] = [];
   // per person: canonical earning -> {amount, manual} so a manual row replaces the
-  // auto item of the same category instead of stacking on top of it. Boulevard
+  // auto item of the same category instead of stacking on top of it. Card
   // tips are tracked separately and ADD to any Paycheck Tips items (a tip
   // catch-up is on top of the current period's card tips, never instead of them).
   const people = new Map<string, { name: string; tips: number; cats: Map<GustoEarning, { amount: number; manual: boolean }> }>();
@@ -99,7 +91,7 @@ export function mergeExtras(runRows: RunRowLike[], adjustments: AdjustmentLike[]
   for (const r of runRows) {
     const name = `${r.first ?? ''} ${r.last ?? ''}`.trim();
     if (!name) continue;
-    const tips = Number(r.blvdTips) || 0;
+    const tips = Number(r.cardTips) || 0;
     const autos = (r.addlItems ?? []).filter((it) => it.auto && it.category && Number(it.amount));
     if (!tips && autos.length === 0) continue;
     const p = personOf(name);

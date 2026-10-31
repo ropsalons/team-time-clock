@@ -45,9 +45,7 @@ export default function ClockScreen({ firstName, locations, departments, status,
   const [standardLine, setStandardLine] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
-    // Same-origin first: Team Time Clock's own backend reads the shared standards bank,
-    // so this never depends on reaching the command-center host (an ISP
-    // black-holed *.netlify.app on Sep 18). The Cloudflare proxy is a backup.
+    // Optional daily line from this app's own backend (one retry on failure).
     // A short timeout guarantees a slow feed can never hold anything up — the
     // quote shows immediately regardless (standardLine ?? quote).
     const ctrl = new AbortController();

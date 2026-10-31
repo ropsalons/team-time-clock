@@ -11,7 +11,6 @@ You use your own free accounts. Nothing is shared with anyone else.
 | Twilio | Sends texts (invites, PIN codes, reminders) | Optional, but needed for Phone + PIN sign-in codes and text reminders |
 | Resend | Sends emails (invites) | Optional |
 | A team chat app with an API | Sends notices to managers | Optional |
-| Boulevard | Salon booking data for salon extras | Optional |
 
 ## Step by step
 1. **Database.** Make a Supabase account and a new project. Open its SQL editor. Run each file in `supabase/migrations` in number order (0001 to 0006).
@@ -80,11 +79,6 @@ Turns on: text invites, PIN reset codes, forgotten clock-out reminders, next-mor
 | `TEAM_CHAT_API_KEY` | Password your chat service can use to read hours from this app |
 
 They send managers notices (sync changes, overnight-shift flags) and chat invites. Leave blank if you do not use one.
-
-### Optional: salon booking (Boulevard)
-| Setting | What it does |
-|---|---|
-| `BLVD_API_KEY`, `BLVD_SECRET_KEY`, `BLVD_BUSINESS_ID` | Pull guest counts from Boulevard for salon reports. Not needed for the time clock. |
 
 ### Optional: let other apps read hours
 | Setting | What it does |
